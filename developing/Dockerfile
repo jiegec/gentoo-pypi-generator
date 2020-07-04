@@ -17,6 +17,3 @@ RUN echo ">=dev-libs/libpcre2-10.34 pcre32" >> /etc/portage/package.use/fish
 RUN emerge --verbose --update --deep --newuse app-shells/fish
 RUN emerge --verbose --update --deep --newuse app-editors/vim
 RUN emerge --verbose --update --deep --newuse dev-vcs/git
-
-# setup local repo
-VOLUME ../../gentoo-localrepo localrepo
