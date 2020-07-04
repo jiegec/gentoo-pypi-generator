@@ -29,7 +29,14 @@ def get_iuse_and_depend(project):
             use = match.group(2)
             uses[use].append('dev-python/{}'.format(name))
         else:
-            simple.append('dev-python/{}'.format(req))
+            # handle: package (>=version)
+            match = re.match("(.+) \(>=(.+)\)", req)
+            if match:
+                name = match.group(1)
+                version = match.group(2)
+                simple.append('>=dev-python/{}-{}'.format(name, version))
+            else:
+                simple.append('dev-python/{}'.format(req))
 
     use_res = []
     for use in uses:
@@ -58,8 +65,10 @@ def main():
         print('Version', body['info']['version'])
         print('IUSE and Depend', get_iuse_and_depend(body))
 
-        path = Path(args.repo) / "dev-python" / package / "{}-{}.ebuild".format(package, body['info']['version'])
+        dir = Path(args.repo) / "dev-python" / package
+        path = dir / "{}-{}.ebuild".format(package, body['info']['version'])
         print('Writing to', path)
+        dir.mkdir(parents=True, exist_ok=True)
         with path.open('w') as f:
             content = '# Copyright 1999-2020 Gentoo Authors\n'
             content += '# Distributed under the terms of the GNU General Public License v2\n\n'
