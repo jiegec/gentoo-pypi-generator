@@ -10,10 +10,15 @@ RUN emerge --verbose --update --deep --newuse @world
 RUN emerge --verbose --update --deep --newuse dev-lang/python:3.8
 RUN emerge --verbose --update --deep --newuse dev-lang/python:3.7
 RUN emerge --verbose --update --deep --newuse dev-lang/python:3.6
-RUN emerge --verbose --update --deep --newuse dev-lang/python:2.7
+RUN echo "*/* PYTHON_TARGETS: python3_6 python3_7 python3_8" >> /etc/portage/package.use/fish
 
 # some useful additions
 RUN echo ">=dev-libs/libpcre2-10.34 pcre32" >> /etc/portage/package.use/fish
 RUN emerge --verbose --update --deep --newuse app-shells/fish
 RUN emerge --verbose --update --deep --newuse app-editors/vim
 RUN emerge --verbose --update --deep --newuse dev-vcs/git
+RUN emerge --verbose --update --deep --newuse app-portage/repoman
+
+# setup local repo
+RUN echo "[localrepo]" > /etc/portage/repos.conf/localrepo.conf
+RUN echo "location = /var/db/repos/localrepo" >> /etc/portage/repos.conf/localrepo.conf
