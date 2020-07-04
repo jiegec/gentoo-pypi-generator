@@ -11,3 +11,7 @@ RUN emerge --verbose --update --deep --newuse dev-lang/python:3.8
 RUN emerge --verbose --update --deep --newuse dev-lang/python:3.7
 RUN emerge --verbose --update --deep --newuse dev-lang/python:3.6
 RUN emerge --verbose --update --deep --newuse dev-lang/python:2.7
+
+# some useful additions
+RUN echo ">=dev-libs/libpcre2-10.34 pcre32" >> /etc/portage/package.use/fish
+RUN emerge --verbose --update --deep --newuse app-shells/fish
