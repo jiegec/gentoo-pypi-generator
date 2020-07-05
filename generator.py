@@ -65,6 +65,7 @@ def main():
         resp = requests.get("https://pypi.org/pypi/{}/json".format(package))
         body = json.loads(resp.content)
 
+        package = body['info']['name']
         versions = get_project_python_versions(body)
         compat = ' '.join(['python' + version.replace('.','_') for version in versions])
         print('Python versions', versions)
