@@ -7,6 +7,15 @@ from collections import defaultdict
 from pathlib import Path
 
 supported_python_versions = ['3.6', '3.7']
+exceptions = {
+    'scipy': 'sci-libs/scipy'
+}
+
+def get_package_name(package):
+    if package in exceptions:
+        return exceptions[package]
+    else:
+        return 'dev-python/' + package
 
 def get_project_python_versions(project):
     classifiers = project['info']['classifiers']
@@ -27,16 +36,16 @@ def get_iuse_and_depend(project):
         if match:
             name = match.group(1)
             use = match.group(2)
-            uses[use].append('dev-python/{}'.format(name))
+            uses[use].append(get_package_name(name))
         else:
             # handle: package (>=version)
             match = re.match("(.+) \(>=(.+)\)", req)
             if match:
                 name = match.group(1)
                 version = match.group(2)
-                simple.append('>=dev-python/{}-{}'.format(name, version))
+                simple.append('>={}-{}'.format(get_package_name(name), version))
             else:
-                simple.append('dev-python/{}'.format(req))
+                simple.append(get_package_name(req))
 
     use_res = []
     for use in uses:
