@@ -31,6 +31,8 @@ def get_iuse_and_depend(project):
     requires = project['info']['requires_dist']
     simple = []
     uses = defaultdict(list)
+    if requires == None:
+        return ''
     for req in requires:
         match = re.match("(.+) ; extra == '(.+)'", req)
         if match:
