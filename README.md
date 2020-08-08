@@ -13,6 +13,6 @@ $ docker pull jiegec/gentoo-pypi-test:latest
 Or, you can build locally:
 
 ```shell
-$ cd build
+$ cd developing
 $ make build
 ```
