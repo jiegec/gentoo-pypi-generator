@@ -35,7 +35,7 @@ def convert_dependency(depend):
         version = match.group(2)
         return '>={}-{}'.format(get_package_name(name), version)
     else:
-        return get_package_name(req)
+        return get_package_name(depend)
 
 def get_iuse_and_depend(project):
     requires = project['info']['requires_dist']
