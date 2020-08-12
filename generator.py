@@ -27,6 +27,16 @@ def get_project_python_versions(project):
                 break
     return res
 
+def convert_dependency(depend):
+    # handle: package (>=version)
+    match = re.match("(.+) \(>=(.+)\)", depend)
+    if match:
+        name = match.group(1)
+        version = match.group(2)
+        return '>={}-{}'.format(get_package_name(name), version)
+    else:
+        return get_package_name(req)
+
 def get_iuse_and_depend(project):
     requires = project['info']['requires_dist']
     simple = []
@@ -38,16 +48,9 @@ def get_iuse_and_depend(project):
         if match:
             name = match.group(1)
             use = match.group(2)
-            uses[use].append(get_package_name(name))
+            uses[use].append(convert_dependency(name))
         else:
-            # handle: package (>=version)
-            match = re.match("(.+) \(>=(.+)\)", req)
-            if match:
-                name = match.group(1)
-                version = match.group(2)
-                simple.append('>={}-{}'.format(get_package_name(name), version))
-            else:
-                simple.append(get_package_name(req))
+            simple.append(convert_dependency(req))
 
     use_res = []
     for use in uses:
