@@ -1,3 +1,6 @@
+jupyter_client
+jupyter_console
+jupyter_core
 scikit-learn
 traits
 xgboost
