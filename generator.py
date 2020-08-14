@@ -92,7 +92,8 @@ def main():
         print('Description', body['info']['summary'])
         print('License', body['info']['license'])
         print('Version', body['info']['version'])
-        print('IUSE and Depend', get_iuse_and_depend(body))
+        iuse_and_depend = get_iuse_and_depend(body)
+        print('IUSE and Depend', iuse_and_depend)
 
         dir = Path(args.repo) / "dev-python" / package
         path = dir / "{}-{}.ebuild".format(package, body['info']['version'])
@@ -110,7 +111,7 @@ def main():
             content += 'LICENSE="{}"\n'.format(body['info']['license'])
             content += 'SLOT="0"\n'
             content += 'KEYWORDS="amd64"\n\n'
-            content += get_iuse_and_depend(body)
+            content += iuse_and_depend
 
             f.write(content)
 
