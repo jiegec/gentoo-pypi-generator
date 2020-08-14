@@ -3,6 +3,7 @@ import sys
 import json
 import requests
 import re
+import glob
 from collections import defaultdict
 from pathlib import Path
 
@@ -10,11 +11,14 @@ supported_python_versions = ['3.6', '3.7']
 exceptions = {
     'scipy': 'sci-libs/scipy'
 }
+upstream_packages = set()
 
 def get_package_name(package):
     if package in exceptions:
         return exceptions[package]
     else:
+        if not package in upstream_packages:
+            print("Package '%s' does not exist" % package)
         return 'dev-python/' + package
 
 def get_project_python_versions(project):
@@ -58,12 +62,22 @@ def get_iuse_and_depend(project):
     iuse = 'IUSE="{}"'.format(" ".join(uses.keys()))
     return iuse + '\n' + 'RDEPEND="' + '\n\t'.join(simple + use_res) + '"'
 
+def find_packages():
+    for file in glob.glob('/var/db/repos/*/dev-python/**/*.ebuild', recursive=True):
+        match = re.match(".*dev-python/(.+)/.*ebuild", file)
+        if match:
+            upstream_packages.add(match.group(1))
+
+    print('Found %d packages in gentoo repo' % len(upstream_packages))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--repo', help='set repo directory', default='../gentoo-localrepo')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose logging')
     parser.add_argument('packages', nargs='+')
     args = parser.parse_args()
+
+    find_packages()
 
     for package in args.packages:
         print('Generating {} to {}'.format(package, args.repo))
