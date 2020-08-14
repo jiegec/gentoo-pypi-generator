@@ -1,6 +1,7 @@
 import argparse
 import sys
 import json
+import os
 import requests
 import re
 import glob
@@ -31,6 +32,10 @@ def get_project_python_versions(project):
             if classifier == 'Programming Language :: Python :: {}'.format(version):
                 res.append(version)
                 break
+    
+    # some packages just specified Python3
+    if len(res) == 0:
+        res = supported_python_versions
     return res
 
 def convert_dependency(depend):
@@ -119,6 +124,9 @@ def generate(package, args):
         content += iuse_and_depend
 
         f.write(content)
+
+    if args.repoman:
+        os.system('cd %s && repoman manifest' % (dir))
         
     if package in missing_packages:
         missing_packages.remove(package)
@@ -134,6 +142,7 @@ def main():
     parser.add_argument('-r', '--repo', help='set repo directory', default='../gentoo-localrepo')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose logging')
     parser.add_argument('-R', '--recursive', action='store_true', help='generate ebuild recursively')
+    parser.add_argument('-p', '--repoman', action='store_true', help='run "repoman manifest" after generation')
     parser.add_argument('packages', nargs='+')
     args = parser.parse_args()
 
