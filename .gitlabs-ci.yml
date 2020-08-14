@@ -1,0 +1,4 @@
+test:
+  image: "jiegec/gentoo-pypi-test:latest"
+  script:
+    - bash gen.sh
