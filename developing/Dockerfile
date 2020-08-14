@@ -21,6 +21,7 @@ RUN emerge --verbose --update --deep --newuse app-portage/repoman
 RUN emerge --verbose --update --deep --newuse app-portage/gentoolkit
 RUN emerge --verbose --update --deep --newuse dev-python/pytest
 RUN emerge --verbose --update --deep --newuse app-portage/metagen
+RUN emerge --verbose --update --deep --newuse dev-python/requests
 
 # setup local repo
 RUN echo "[localrepo]" > /etc/portage/repos.conf/localrepo.conf
