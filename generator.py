@@ -12,6 +12,10 @@ supported_python_versions = ['3.6', '3.7']
 exceptions = {
     'scipy': 'sci-libs/scipy'
 }
+renames = {
+    'jupyter-core': 'jupyter_core',
+    'jupyter-client': 'jupyter_client'
+}
 existing_packages = set()
 missing_packages = set()
 
@@ -95,6 +99,8 @@ def generate(package, args):
     body = json.loads(resp.content)
 
     package = body['info']['name']
+    if package in renames:
+        package = renames[package]
     versions = get_project_python_versions(body)
     compat = ' '.join(['python' + version.replace('.','_') for version in versions])
     print('Python versions', versions)
