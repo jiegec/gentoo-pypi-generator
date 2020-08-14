@@ -152,7 +152,7 @@ def main():
     metadata = Path(args.repo) / "metadata"
     metadata.mkdir(parents=True, exist_ok=True)
     with (metadata / "layout.conf").open('w') as f:
-        f.write("masters = gentoo\nauto-sync = false")
+        f.write("masters = gentoo\nauto-sync = false\n")
 
     for package in args.packages:
         generate(package, args)
