@@ -2,3 +2,5 @@ test:
   image: "jiegec/gentoo-pypi-test:latest"
   script:
     - bash gen.sh
+  tags:
+    - amd64
