@@ -14,6 +14,7 @@ exceptions = {
 }
 renames = {
     'jupyter-core': 'jupyter_core',
+    'jupyter-console': 'jupyter_console',
     'jupyter-client': 'jupyter_client'
 }
 existing_packages = set()
