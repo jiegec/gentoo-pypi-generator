@@ -130,7 +130,7 @@ def generate(package, args):
         content += 'HOMEPAGE="{}"\n\n'.format(body['info']['home_page'])
         content += 'LICENSE="{}"\n'.format(body['info']['license'])
         content += 'SLOT="0"\n'
-        content += 'KEYWORDS="amd64"\n\n'
+        content += 'KEYWORDS="~amd64"\n\n'
         content += iuse_and_depend
 
         f.write(content)
