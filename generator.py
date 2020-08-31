@@ -76,7 +76,9 @@ def get_iuse_and_depend(project):
             match = re.match('(.+); python_version < "(.+)"', req)
             if match:
                 name = match.group(1).strip()
-                simple.append(convert_dependency(name))
+                if not name.startswith('backports'):
+                    # we don't need backports for python3
+                    simple.append(convert_dependency(name))
             else:
                 simple.append(convert_dependency(req.strip()))
 
