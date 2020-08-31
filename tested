@@ -1,7 +1,10 @@
+bash_kernel
 jupyter_client
 jupyter_console
 jupyter_core
 scikit-learn
 traits
+matlab_kernel
+uproot4
 xgboost
 xopen

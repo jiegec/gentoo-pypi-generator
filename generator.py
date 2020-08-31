@@ -15,7 +15,8 @@ exceptions = {
 renames = {
     'jupyter-core': 'jupyter_core',
     'jupyter-console': 'jupyter_console',
-    'jupyter-client': 'jupyter_client'
+    'jupyter-client': 'jupyter_client',
+    'matlab-kernel': 'matlab_kernel'
 }
 existing_packages = set()
 missing_packages = set()
