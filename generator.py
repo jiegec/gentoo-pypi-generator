@@ -10,7 +10,8 @@ from pathlib import Path
 
 supported_python_versions = ['3.6', '3.7']
 exceptions = {
-    'scipy': 'sci-libs/scipy'
+    'scipy': 'sci-libs/scipy',
+    'tornado': 'www-servers/tornado'
 }
 renames = {
     'jupyter-core': 'jupyter_core',

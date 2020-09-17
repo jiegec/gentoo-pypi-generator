@@ -1,10 +1,13 @@
 bash_kernel
+hist
 jupyter_client
 jupyter_console
 jupyter_core
 scikit-learn
 traits
+metakernel
 matlab_kernel
+pickleshare
 uproot4
 xgboost
 xopen
