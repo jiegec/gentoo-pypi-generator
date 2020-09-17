@@ -25,7 +25,7 @@ def get_package_name(package):
     if package in exceptions:
         return exceptions[package]
     elif package in renames:
-        return renames[package]
+        return 'dev-python/' + renames[package]
     else:
         if not package in existing_packages:
             print("Package '%s' does not exist" % package)
