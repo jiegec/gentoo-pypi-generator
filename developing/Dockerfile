@@ -23,6 +23,6 @@ RUN emerge --verbose --update --deep --newuse dev-python/pytest
 RUN emerge --verbose --update --deep --newuse app-portage/metagen
 RUN emerge --verbose --update --deep --newuse dev-python/requests
 
-# setup local repo
-RUN echo "[localrepo]" > /etc/portage/repos.conf/localrepo.conf
-RUN echo "location = /var/db/repos/localrepo" >> /etc/portage/repos.conf/localrepo.conf
+# setup gentoo pypi sci repo
+RUN echo "[pypi-sci]" > /etc/portage/repos.conf/pypi-sci.conf
+RUN echo "location = /var/db/repos/gentoo-pypi-sci" >> /etc/portage/repos.conf/pypi-sci.conf
