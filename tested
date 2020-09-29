@@ -10,5 +10,6 @@ metakernel
 matlab_kernel
 pickleshare
 uproot4
+upsilon
 xgboost
 xopen
