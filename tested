@@ -1,6 +1,8 @@
 async_generator
 bash_kernel
+datatable
 hist
+ipython
 jupyter_client
 jupyter_console
 jupyter_core
@@ -10,5 +12,6 @@ metakernel
 matlab_kernel
 pickleshare
 uproot4
+upsilon
 xgboost
 xopen
