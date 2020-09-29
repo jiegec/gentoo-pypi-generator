@@ -141,6 +141,7 @@ def generate(package, args):
         content += 'SLOT="0"\n'
         content += 'KEYWORDS="~amd64"\n\n'
         content += iuse_and_depend
+        content += '\ndistutils_enable_tests pytest\n'
 
         f.write(content)
 
