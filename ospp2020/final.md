@@ -18,7 +18,8 @@
 
 ## 项目进度
 
-- 已完成工作：
+- 项目成果
+
   1. 配置了在 Docker 中的 gentoo 环境，方便开发和自动测试，容器内包含了常用的工具，加快了编译构建的速度
   2. 编写了 python 脚本，可以从 pypi 上抓取元数据并生成基于 distutils-r1.eclass 的 ebuild 文件，并自动翻译库的依赖信息，可以翻译比较复杂的依赖表达式
   3. 实现了对已有 ebuild 的包的扫描，可以自动跳过已经生成或者已经在 gentoo 仓库中的 ebuild
@@ -27,3 +28,12 @@
   6. 发布了 gentoo-sci-pypi overlay，含有本生成器生成的若干已经测试过的 ebuild 文件
   7. 采用 pytest 作为默认的测试框架，在 emerge 构建的时候启用 test FEATURE 即可进行测试
   8. 支持了常见的一些 pypi 上的包，比如 jupyter、scikit-learn 和 xgboost 等等
+
+- 遇到的问题及解决方案
+  1. 有一些特殊情况，需要对包进行特判，比如 scipy，它归属在 sci-libs 而不是 dev-python 下；目前在代码中进行了特判，有一些情况需要维护者自己判断，日后需要研究更优雅的解决方案
+
+## 项目总结
+
+本项目，针对 Gentoo 社区，特别是科学计算相关的 gentoo-sci 维护者的痛点设计，为重复性比较高的 PyPI 软件包的 ebuild 维护提供了一个简单的方式，可以有效地提高 Gentoo 科学计算软件的维护质量。
+
+同时，我也更加熟悉了 Gentoo 的 Portage 包管理器的使用方法，了解了 Gentoo 的 ebuild 的工作方式和 overlay 的分发机制，受益良多。
