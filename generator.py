@@ -8,7 +8,7 @@ import glob
 from collections import defaultdict
 from pathlib import Path
 
-supported_python_versions = ['3.6', '3.7']
+supported_python_versions = ['3.6', '3.7', '3.8']
 exceptions = {
     'scipy': 'sci-libs/scipy',
     'tornado': 'www-servers/tornado'
