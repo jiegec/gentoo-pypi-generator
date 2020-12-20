@@ -50,7 +50,7 @@ def get_project_python_versions(project):
 
 def convert_dependency(depend):
     # ignore strings after ';'
-    depend = depend.split(';')[0]
+    depend = depend.split(';')[0].strip()
     # handle: package (>=version)
     match = re.match("(.+) \(>=(.+)\)", depend)
     if match:
