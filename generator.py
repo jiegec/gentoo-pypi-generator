@@ -24,6 +24,7 @@ existing_packages = set()
 missing_packages = set()
 
 def get_package_name(package):
+    package = package.replace('.', '-')
     if package in exceptions:
         return exceptions[package]
     elif package in renames:
@@ -108,7 +109,7 @@ def generate(package, args):
     resp = requests.get("https://pypi.org/pypi/{}/json".format(package))
     body = json.loads(resp.content)
 
-    package = body['info']['name']
+    package = body['info']['name'].replace('.','-')
     if package in renames:
         package = renames[package]
     versions = get_project_python_versions(body)
