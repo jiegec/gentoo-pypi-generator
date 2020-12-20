@@ -25,6 +25,7 @@ renames.update({'SQLAlchemy': 'sqlalchemy'})
 renames.update({'Jinja2': 'jinja',
                 'jinja2': 'jinja'
                 })
+removals = [ 'backports.lzma' ]
 
 existing_packages = set()
 missing_packages = set()
@@ -81,20 +82,24 @@ def get_iuse_and_depend(project):
     if requires == None:
         return ''
     for req in requires:
-        match = re.match("(.+); extra == '(.+)'", req)
-        if match:
-            name = match.group(1).strip()
-            use = match.group(2)
-            uses[use].append(convert_dependency(name))
+        for rm in removals:
+            if rm in req:
+                break
         else:
-            match = re.match('(.+); python_version < "(.+)"', req)
+            match = re.match("(.+); extra == '(.+)'", req)
             if match:
                 name = match.group(1).strip()
-                if not name.startswith('backports'):
-                    # we don't need backports for python3
-                    simple.append(convert_dependency(name))
+                use = match.group(2)
+                uses[use].append(convert_dependency(name))
             else:
-                simple.append(convert_dependency(req.strip()))
+                match = re.match('(.+); python_version < "(.+)"', req)
+                if match:
+                    name = match.group(1).strip()
+                    if not name.startswith('backports'):
+                        # we don't need backports for python3
+                        simple.append(convert_dependency(name))
+                else:
+                    simple.append(convert_dependency(req.strip()))
 
     use_res = []
     for use in uses:
