@@ -63,16 +63,16 @@ def convert_dependency(depend):
     if match:
         name = match.group(1)
         version = match.group(2)
-        return '>={}-{}'.format(get_package_name(name), version)
+        return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
     else:
         # handle: package (==version)
         match = re.match("(.+) \(==(.+)\)", depend)
         if match:
             name = match.group(1)
             version = match.group(2)
-            return '=={}-{}'.format(get_package_name(name), version)
+            return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
         else:
-            return get_package_name(depend)
+            return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend))
 
 def get_iuse_and_depend(project):
     requires = project['info']['requires_dist']
