@@ -6,6 +6,7 @@ ipython
 jupyter_client
 jupyter_console
 jupyter_core
+jupyterhub
 scikit-learn
 traits
 metakernel

@@ -13,13 +13,19 @@ exceptions = {
     'scipy': 'sci-libs/scipy',
     'tornado': 'www-servers/tornado'
 }
-renames = {
-    'async-generator': 'async_generator',
-    'jupyter-core': 'jupyter_core',
-    'jupyter-console': 'jupyter_console',
-    'jupyter-client': 'jupyter_client',
-    'matlab-kernel': 'matlab_kernel'
-}
+renames = { k:k.replace('-', '_') for k in ['async-generator',
+                                           'jupyter-core',
+                                           'jupyter-console',
+                                           'jupyter-client',
+                                           'jupyter-telemetry',
+                                           'matlab-kernel',
+                                           'prometheus-client',
+                                           ]}
+renames.update({'SQLAlchemy': 'sqlalchemy'})
+renames.update({'Jinja2': 'jinja',
+                'jinja2': 'jinja'
+                })
+
 existing_packages = set()
 missing_packages = set()
 
