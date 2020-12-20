@@ -14,6 +14,7 @@ exceptions = {
     'tornado': 'www-servers/tornado'
 }
 renames = {
+    'async-generator': 'async_generator',
     'jupyter-core': 'jupyter_core',
     'jupyter-console': 'jupyter_console',
     'jupyter-client': 'jupyter_client',
