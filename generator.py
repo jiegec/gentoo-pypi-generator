@@ -151,7 +151,7 @@ def generate(package, args):
     
     if args.recursive:
         for pkg in list(missing_packages):
-            if package not in existing_packages:
+            if pkg not in existing_packages:
                 generate(pkg, args)
 
 def main():
