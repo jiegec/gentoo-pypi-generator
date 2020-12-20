@@ -28,12 +28,12 @@ def get_package_name(package):
     if package in exceptions:
         return exceptions[package]
     elif package in renames:
-        return 'dev-python/' + renames[package]
-    else:
-        if not package in existing_packages:
-            print("Package '%s' does not exist" % package)
-            missing_packages.add(package)
-        return 'dev-python/' + package
+        package = renames[package]
+
+    if not package in existing_packages:
+        print("Package '%s' does not exist" % package)
+        missing_packages.add(package)
+    return 'dev-python/' + package
 
 def get_project_python_versions(project):
     classifiers = project['info']['classifiers']
