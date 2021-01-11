@@ -9,10 +9,14 @@ from collections import defaultdict
 from pathlib import Path
 
 supported_python_versions = ['3.6', '3.7', '3.8']
+
+# already provided by other gentoo packages
 exceptions = {
     'scipy': 'sci-libs/scipy',
     'tornado': 'www-servers/tornado'
 }
+
+# handle '-' and '_'
 renames = { k:k.replace('-', '_') for k in ['async-generator',
                                            'jupyter-core',
                                            'jupyter-console',
@@ -21,11 +25,22 @@ renames = { k:k.replace('-', '_') for k in ['async-generator',
                                            'matlab-kernel',
                                            'prometheus-client',
                                            ]}
+
+# other cases
 renames.update({'SQLAlchemy': 'sqlalchemy'})
 renames.update({'Jinja2': 'jinja',
                 'jinja2': 'jinja'
                 })
+
+# unneeded packages for python2 backports
 removals = [ 'backports.lzma' ]
+
+# license mapping
+license_mapping = {
+        'BSD 3-clause': 'BSD',
+        'BSD 3-clause License': 'BSD',
+        'BSD 3-Clause License': 'BSD',
+}
 
 existing_packages = set()
 missing_packages = set()
@@ -128,7 +143,10 @@ def generate(package, args):
     print('Python versions', versions)
     print('Homepage', body['info']['home_page'])
     print('Description', body['info']['summary'])
-    print('License', body['info']['license'])
+    license = body['info']['license']
+    if license in license_mapping:
+        license = license_mapping[license]
+    print('License', license)
     print('Version', body['info']['version'])
     iuse_and_depend = get_iuse_and_depend(body)
     print('IUSE and Depend', iuse_and_depend)
