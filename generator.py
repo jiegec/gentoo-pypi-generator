@@ -12,8 +12,17 @@ supported_python_versions = ['3.6', '3.7', '3.8']
 
 # already provided by other gentoo packages
 exceptions = {
+    'bs4': 'dev-python/beautifulsoup:4',
+    'funcsigs': '',
+    'opencv-python': 'media-libs/opencv[python]',
+    'scikit-learn': 'sci-libs/scikit-learn',
     'scipy': 'sci-libs/scipy',
-    'tornado': 'www-servers/tornado'
+    'tensorflow': 'sci-libs/tensorflow',
+    'tensorflow-cpu': 'sci-libs/tensorflow',
+    'tensorflow-gpu': 'sci-libs/tensorflow[gpu]',
+    'torch' : 'sci-libs/pytorch',
+    'tornado': 'www-servers/tornado',
+    'urllib3': ''
 }
 
 # handle '-' and '_'
@@ -22,14 +31,20 @@ renames = { k:k.replace('-', '_') for k in ['async-generator',
                                            'jupyter-console',
                                            'jupyter-client',
                                            'jupyter-telemetry',
+                                           'Keras-Preprocessing',
                                            'matlab-kernel',
+                                           'mpl-axes-aligner',
+                                           'pretty-midi',
                                            'prometheus-client',
                                            ]}
 
 # other cases
-renames.update({'SQLAlchemy': 'sqlalchemy'})
-renames.update({'Jinja2': 'jinja',
-                'jinja2': 'jinja'
+renames.update({'SQLAlchemy': 'sqlalchemy',
+                'Sphinx': 'sphinx',
+                'PyYAML': 'pyyaml',
+                'Jinja2': 'jinja',
+                'jinja2': 'jinja',
+                'netcdf4': 'netcdf4-python',
                 })
 
 # unneeded packages for python2 backports
@@ -41,6 +56,9 @@ license_mapping = {
         'BSD 3-clause License': 'BSD',
         'BSD 3-Clause License': 'BSD',
 }
+
+# useless dependencies
+use_blackhole = set(('dev',))
 
 existing_packages = set()
 missing_packages = set()
@@ -111,6 +129,8 @@ def get_iuse_and_depend(project):
             if match:
                 name = match.group(1).strip()
                 use = match.group(2)
+                if use in use_blackhole:
+                    continue
                 uses[use].append(convert_dependency(name))
             else:
                 match = re.match('(.+); python_version < "(.+)"', req)
