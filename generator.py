@@ -92,6 +92,8 @@ def get_project_python_versions(project):
 def convert_dependency(depend):
     # ignore strings after ';'
     depend = depend.split(';')[0].strip()
+    # ignore strings after '[', e.g. horovod[torch]
+    depend = depend.split('[')[0]
     # handle: package (>=version)
     match = re.match("(.+) \(>=(.+)\)", depend)
     if match:
