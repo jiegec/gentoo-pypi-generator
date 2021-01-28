@@ -88,7 +88,13 @@ def convert_dependency(depend):
             version = match.group(2)
             return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
         else:
-            return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend))
+            # strip all exotic (.*), e.g. (~=1-32-0), (~=3-7-4), (<2,>=1-21-1)
+            match = re.match("(.+) \([^()]*\)", depend)
+            if match:
+                name = match.group(1)
+                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name))
+            else:
+                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend))
 
 def get_iuse_and_depend(project):
     requires = project['info']['requires_dist']
