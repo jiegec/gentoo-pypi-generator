@@ -8,7 +8,7 @@ import glob
 from collections import defaultdict
 from pathlib import Path
 
-supported_python_versions = ['3.6', '3.7', '3.8']
+supported_python_versions = ['3.9', '3.10']
 
 # already provided by other gentoo packages
 exceptions = {
@@ -36,6 +36,7 @@ renames = { k:k.replace('-', '_') for k in ['async-generator',
                                            'mpl-axes-aligner',
                                            'pretty-midi',
                                            'prometheus-client',
+                                           'importlib-resources',
                                            ]}
 
 # other cases
@@ -58,7 +59,7 @@ license_mapping = {
 }
 
 # useless dependencies
-use_blackhole = set(('dev',))
+use_blackhole = set(('dev', 'doc', 'docs', 'all', 'test', 'cuda'))
 
 existing_packages = set()
 missing_packages = set()
@@ -83,7 +84,7 @@ def get_project_python_versions(project):
             if classifier == 'Programming Language :: Python :: {}'.format(version):
                 res.append(version)
                 break
-    
+
     # some packages just specified Python3
     if len(res) == 0:
         res = supported_python_versions
@@ -127,10 +128,10 @@ def get_iuse_and_depend(project):
             if rm in req:
                 break
         else:
-            match = re.match("(.+); extra == '(.+)'", req)
+            match = re.match("(.+); (.* and )?extra == '(.+)'", req)
             if match:
                 name = match.group(1).strip()
-                use = match.group(2)
+                use = match.group(3)
                 if use in use_blackhole:
                     continue
                 uses[use].append(convert_dependency(name))
