@@ -16,7 +16,7 @@ exceptions = {
     'funcsigs': '',
     'opencv-python': 'media-libs/opencv[python]',
     'scikit-learn': 'sci-libs/scikit-learn',
-    'scipy': 'sci-libs/scipy',
+    'scipy': 'dev-python/scipy',
     'tensorflow': 'sci-libs/tensorflow',
     'tensorflow-cpu': 'sci-libs/tensorflow',
     'tensorflow-gpu': 'sci-libs/tensorflow[gpu]',
