@@ -185,7 +185,7 @@ def generate(package, args):
     print('Writing to', path)
     dir.mkdir(parents=True, exist_ok=True)
     with path.open('w') as f:
-        content = '# Copyright 1999-2021 Gentoo Authors\n'
+        content = '# Copyright 1999-2022 Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=7\n\n'
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
