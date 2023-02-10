@@ -8,7 +8,7 @@ import glob
 from collections import defaultdict
 from pathlib import Path
 
-supported_python_versions = ['3.9', '3.10']
+supported_python_versions = ['3.9', '3.10', '3.11']
 
 # already provided by other gentoo packages
 exceptions = {
@@ -185,9 +185,9 @@ def generate(package, args):
     print('Writing to', path)
     dir.mkdir(parents=True, exist_ok=True)
     with path.open('w') as f:
-        content = '# Copyright 1999-2022 Gentoo Authors\n'
+        content = '# Copyright 1999-2023 Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
-        content += 'EAPI=7\n\n'
+        content += 'EAPI=8\n\n'
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
         content += 'inherit distutils-r1\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
