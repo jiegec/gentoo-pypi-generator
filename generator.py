@@ -139,11 +139,15 @@ def get_iuse_and_depend(project):
                 use = match.group(3)
                 if use in use_blackhole:
                     continue
+                if name.startswith('types-'):
+                    continue
                 uses[use].append(convert_dependency(name))
             else:
                 match = re.match('(.+); python_version < "(.+)"', req)
                 if match:
                     name = match.group(1).strip()
+                    if name.startswith('types-'):
+                        continue
                     if not name.startswith('backports'):
                         # we don't need backports for python3
                         simple.append(convert_dependency(name))
