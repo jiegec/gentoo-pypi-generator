@@ -68,7 +68,8 @@ use_blackhole = set(('dev', 'doc', 'docs', 'all', 'test', 'cuda'))
 existing_packages = set()
 missing_packages = set()
 
-def get_package_name(package):
+def get_package_name(package_pypi):
+    package = package_pypi
     package = package.replace('.', '-')
     if package in exceptions:
         return exceptions[package]
@@ -77,7 +78,7 @@ def get_package_name(package):
 
     if not package in existing_packages:
         print("Package '%s' does not exist" % package)
-        missing_packages.add(package)
+        missing_packages.add(package_pypi)
     return 'dev-python/' + package
 
 def get_project_python_versions(project):
@@ -171,9 +172,9 @@ def find_packages(pypi_repo, search_all):
 
     print('Found %d packages in gentoo repo' % len(existing_packages))
 
-def generate(package, args):
-    print('Generating {} to {}'.format(package, args.repo))
-    resp = requests.get("https://pypi.org/pypi/{}/json".format(package))
+def generate(package_pypi, args):
+    print('Generating {} to {}'.format(package_pypi, args.repo))
+    resp = requests.get("https://pypi.org/pypi/{}/json".format(package_pypi))
     body = json.loads(resp.content)
 
     package = body['info']['name'].replace('.','-')
@@ -216,14 +217,13 @@ def generate(package, args):
     if args.manifest:
         os.system('cd %s && pkgdev manifest' % (dir))
         
-    if package in missing_packages:
-        missing_packages.remove(package)
+    if package_pypi in missing_packages:
+        missing_packages.remove(package_pypi)
         existing_packages.add(package)
     
     if args.recursive:
         for pkg in list(missing_packages):
-            if pkg not in existing_packages:
-                generate(pkg, args)
+            generate(pkg, args)
 
 def main():
     parser = argparse.ArgumentParser()
