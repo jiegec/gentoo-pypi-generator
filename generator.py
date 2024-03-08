@@ -213,8 +213,8 @@ def generate(package, args):
 
         f.write(content)
 
-    if args.repoman:
-        os.system('cd %s && repoman manifest' % (dir))
+    if args.manifest:
+        os.system('cd %s && pkgdev manifest' % (dir))
         
     if package in missing_packages:
         missing_packages.remove(package)
@@ -230,7 +230,7 @@ def main():
     parser.add_argument('-r', '--repo', help='set repo directory', default='../gentoo-localrepo')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose logging')
     parser.add_argument('-R', '--recursive', action='store_true', help='generate ebuild recursively')
-    parser.add_argument('-p', '--repoman', action='store_true', help='run "repoman manifest" after generation')
+    parser.add_argument('-m', '--manifest', action='store_true', help='run "pkgdev manifest" after generation')
     parser.add_argument('-a', '--all-repo', action='store_true', help='search all repos for existing packages including overlays')
     parser.add_argument('packages', nargs='+')
     args = parser.parse_args()
