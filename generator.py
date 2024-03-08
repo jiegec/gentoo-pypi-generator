@@ -96,21 +96,21 @@ def convert_dependency(depend):
     # ignore strings after '[', e.g. horovod[torch]
     depend = depend.split('[')[0]
     # handle: package (>=version)
-    match = re.match("(.+) \(>=(.+)\)", depend)
+    match = re.match("(.+) \(?>=([^)]+)\)?", depend)
     if match:
         name = match.group(1)
         version = match.group(2)
         return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
     else:
         # handle: package (==version)
-        match = re.match("(.+) \(==(.+)\)", depend)
+        match = re.match("(.+) \(?==([^)]+)\)?", depend)
         if match:
             name = match.group(1)
             version = match.group(2)
             return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
         else:
             # strip all exotic (.*), e.g. (~=1-32-0), (~=3-7-4), (<2,>=1-21-1)
-            match = re.match("(.+) \([^()]*\)", depend)
+            match = re.match("([^ ><=~!]+).*", depend)
             if match:
                 name = match.group(1)
                 return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name))
