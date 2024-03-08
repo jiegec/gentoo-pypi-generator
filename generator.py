@@ -190,9 +190,8 @@ def generate(package, args):
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=8\n\n'
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
-        content += 'inherit distutils-r1\n\n'
+        content += 'inherit distutils-r1 pypi\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
-        content += 'SRC_URI="mirror://pypi/${PN:0:1}/${PN}/${P}.tar.gz"\n'
         content += 'HOMEPAGE="{}"\n\n'.format(body['info']['home_page'])
         content += 'LICENSE="{}"\n'.format(body['info']['license'])
         content += 'SLOT="0"\n'
