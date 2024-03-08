@@ -7,6 +7,7 @@ import re
 import glob
 from collections import defaultdict
 from pathlib import Path
+import datetime
 
 supported_python_versions = ['3.9', '3.10', '3.11']
 
@@ -185,7 +186,7 @@ def generate(package, args):
     print('Writing to', path)
     dir.mkdir(parents=True, exist_ok=True)
     with path.open('w') as f:
-        content = '# Copyright 1999-2023 Gentoo Authors\n'
+        content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=8\n\n'
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
