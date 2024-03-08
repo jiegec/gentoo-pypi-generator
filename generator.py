@@ -8,6 +8,9 @@ import glob
 from collections import defaultdict
 from pathlib import Path
 import datetime
+import portage
+
+portagedb = portage.db[portage.root]["porttree"].dbapi
 
 supported_python_versions = ['3.9', '3.10', '3.11']
 
@@ -152,11 +155,14 @@ def get_iuse_and_depend(project):
     iuse = 'IUSE="{}"'.format(" ".join(uses.keys()))
     return iuse + '\n' + 'RDEPEND="' + '\n\t'.join(simple + use_res) + '"'
 
-def find_packages():
-    for file in glob.glob('/var/db/repos/*/dev-python/**/*.ebuild', recursive=True):
-        match = re.match(".*dev-python/(.+)/.*ebuild", file)
-        if match:
-            existing_packages.add(match.group(1))
+def find_packages(pypi_repo):
+    repodirs = [portagedb.repositories.mainRepoLocation()]
+    repodirs += [pypi_repo]
+    for repodir in repodirs:
+        for file in glob.glob(repodir + '/dev-python/**/*.ebuild', recursive=True):
+            match = re.match(".*dev-python/(.+)/.*ebuild", file)
+            if match:
+                existing_packages.add(match.group(1))
 
     print('Found %d packages in gentoo repo' % len(existing_packages))
 
@@ -185,6 +191,7 @@ def generate(package, args):
     path = dir / "{}-{}.ebuild".format(package, body['info']['version'])
     print('Writing to', path)
     dir.mkdir(parents=True, exist_ok=True)
+    compat=("python3_{10..12}")
     with path.open('w') as f:
         content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
@@ -222,7 +229,7 @@ def main():
     parser.add_argument('packages', nargs='+')
     args = parser.parse_args()
 
-    find_packages()
+    find_packages(args.repo)
 
     # setup repo structure
     metadata = Path(args.repo) / "metadata"
