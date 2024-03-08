@@ -26,7 +26,9 @@ exceptions = {
     'tensorflow-gpu': 'sci-libs/tensorflow[gpu]',
     'torch' : 'sci-libs/pytorch',
     'tornado': 'www-servers/tornado',
-    'urllib3': ''
+    'urllib3': '',
+    'Brotli': 'app-arch/brotli',
+    'toml' : '',
 }
 
 # handle '-' and '_'
@@ -63,7 +65,7 @@ license_mapping = {
 }
 
 # useless dependencies
-use_blackhole = set(('dev', 'doc', 'docs', 'all', 'test', 'cuda'))
+use_blackhole = set(('dev', 'doc', 'docs', 'all', 'test', 'testing', 'cuda'))
 
 existing_packages = set()
 missing_packages = set()
