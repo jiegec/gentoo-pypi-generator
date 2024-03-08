@@ -155,9 +155,14 @@ def get_iuse_and_depend(project):
     iuse = 'IUSE="{}"'.format(" ".join(uses.keys()))
     return iuse + '\n' + 'RDEPEND="' + '\n\t'.join(simple + use_res) + '"'
 
-def find_packages(pypi_repo):
+def find_packages(pypi_repo, search_all):
     repodirs = [portagedb.repositories.mainRepoLocation()]
     repodirs += [pypi_repo]
+    if search_all:
+        for reponame in portagedb.repositories.prepos_order[1:-1]:
+            repodir = portagedb.repositories.get_location_for_name(reponame)
+            if Path(repodir) != Path(pypi_repo):
+                repodirs += [repodir]
     for repodir in repodirs:
         for file in glob.glob(repodir + '/dev-python/**/*.ebuild', recursive=True):
             match = re.match(".*dev-python/(.+)/.*ebuild", file)
@@ -226,10 +231,11 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose logging')
     parser.add_argument('-R', '--recursive', action='store_true', help='generate ebuild recursively')
     parser.add_argument('-p', '--repoman', action='store_true', help='run "repoman manifest" after generation')
+    parser.add_argument('-a', '--all-repo', action='store_true', help='search all repos for existing packages including overlays')
     parser.add_argument('packages', nargs='+')
     args = parser.parse_args()
 
-    find_packages(args.repo)
+    find_packages(args.repo, args.all_repo)
 
     # setup repo structure
     metadata = Path(args.repo) / "metadata"
