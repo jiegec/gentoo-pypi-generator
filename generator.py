@@ -7,6 +7,10 @@ import re
 import glob
 from collections import defaultdict
 from pathlib import Path
+import datetime
+import portage
+
+portagedb = portage.db[portage.root]["porttree"].dbapi
 
 supported_python_versions = ['3.9', '3.10', '3.11']
 
@@ -22,7 +26,9 @@ exceptions = {
     'tensorflow-gpu': 'sci-libs/tensorflow[gpu]',
     'torch' : 'sci-libs/pytorch',
     'tornado': 'www-servers/tornado',
-    'urllib3': ''
+    'urllib3': '',
+    'Brotli': 'app-arch/brotli',
+    'toml' : '',
 }
 
 # handle '-' and '_'
@@ -59,12 +65,13 @@ license_mapping = {
 }
 
 # useless dependencies
-use_blackhole = set(('dev', 'doc', 'docs', 'all', 'test', 'cuda'))
+use_blackhole = set(('dev', 'doc', 'docs', 'all', 'test', 'testing', 'cuda'))
 
 existing_packages = set()
 missing_packages = set()
 
-def get_package_name(package):
+def get_package_name(package_pypi):
+    package = package_pypi
     package = package.replace('.', '-')
     if package in exceptions:
         return exceptions[package]
@@ -73,7 +80,7 @@ def get_package_name(package):
 
     if not package in existing_packages:
         print("Package '%s' does not exist" % package)
-        missing_packages.add(package)
+        missing_packages.add(package_pypi)
     return 'dev-python/' + package
 
 def get_project_python_versions(project):
@@ -96,21 +103,21 @@ def convert_dependency(depend):
     # ignore strings after '[', e.g. horovod[torch]
     depend = depend.split('[')[0]
     # handle: package (>=version)
-    match = re.match("(.+) \(>=(.+)\)", depend)
+    match = re.match("(.+) \(?>=([^)]+)\)?", depend)
     if match:
         name = match.group(1)
         version = match.group(2)
         return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
     else:
         # handle: package (==version)
-        match = re.match("(.+) \(==(.+)\)", depend)
+        match = re.match("(.+) \(?==([^)]+)\)?", depend)
         if match:
             name = match.group(1)
             version = match.group(2)
             return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
         else:
             # strip all exotic (.*), e.g. (~=1-32-0), (~=3-7-4), (<2,>=1-21-1)
-            match = re.match("(.+) \([^()]*\)", depend)
+            match = re.match("([^ ><=~!]+).*", depend)
             if match:
                 name = match.group(1)
                 return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name))
@@ -134,11 +141,15 @@ def get_iuse_and_depend(project):
                 use = match.group(3)
                 if use in use_blackhole:
                     continue
+                if name.startswith('types-'):
+                    continue
                 uses[use].append(convert_dependency(name))
             else:
                 match = re.match('(.+); python_version < "(.+)"', req)
                 if match:
                     name = match.group(1).strip()
+                    if name.startswith('types-'):
+                        continue
                     if not name.startswith('backports'):
                         # we don't need backports for python3
                         simple.append(convert_dependency(name))
@@ -151,17 +162,25 @@ def get_iuse_and_depend(project):
     iuse = 'IUSE="{}"'.format(" ".join(uses.keys()))
     return iuse + '\n' + 'RDEPEND="' + '\n\t'.join(simple + use_res) + '"'
 
-def find_packages():
-    for file in glob.glob('/var/db/repos/*/dev-python/**/*.ebuild', recursive=True):
-        match = re.match(".*dev-python/(.+)/.*ebuild", file)
-        if match:
-            existing_packages.add(match.group(1))
+def find_packages(pypi_repo, search_all):
+    repodirs = [portagedb.repositories.mainRepoLocation()]
+    repodirs += [pypi_repo]
+    if search_all:
+        for reponame in portagedb.repositories.prepos_order[1:-1]:
+            repodir = portagedb.repositories.get_location_for_name(reponame)
+            if Path(repodir) != Path(pypi_repo):
+                repodirs += [repodir]
+    for repodir in repodirs:
+        for file in glob.glob(repodir + '/dev-python/**/*.ebuild', recursive=True):
+            match = re.match(".*dev-python/(.+)/.*ebuild", file)
+            if match:
+                existing_packages.add(match.group(1))
 
     print('Found %d packages in gentoo repo' % len(existing_packages))
 
-def generate(package, args):
-    print('Generating {} to {}'.format(package, args.repo))
-    resp = requests.get("https://pypi.org/pypi/{}/json".format(package))
+def generate(package_pypi, args):
+    print('Generating {} to {}'.format(package_pypi, args.repo))
+    resp = requests.get("https://pypi.org/pypi/{}/json".format(package_pypi))
     body = json.loads(resp.content)
 
     package = body['info']['name'].replace('.','-')
@@ -184,14 +203,14 @@ def generate(package, args):
     path = dir / "{}-{}.ebuild".format(package, body['info']['version'])
     print('Writing to', path)
     dir.mkdir(parents=True, exist_ok=True)
+    compat=("python3_{10..12}")
     with path.open('w') as f:
-        content = '# Copyright 1999-2023 Gentoo Authors\n'
+        content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=8\n\n'
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
-        content += 'inherit distutils-r1\n\n'
+        content += 'inherit distutils-r1 pypi\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
-        content += 'SRC_URI="mirror://pypi/${PN:0:1}/${PN}/${P}.tar.gz"\n'
         content += 'HOMEPAGE="{}"\n\n'.format(body['info']['home_page'])
         content += 'LICENSE="{}"\n'.format(body['info']['license'])
         content += 'SLOT="0"\n'
@@ -201,28 +220,28 @@ def generate(package, args):
 
         f.write(content)
 
-    if args.repoman:
-        os.system('cd %s && repoman manifest' % (dir))
+    if args.manifest:
+        os.system('cd %s && pkgdev manifest' % (dir))
         
-    if package in missing_packages:
-        missing_packages.remove(package)
+    if package_pypi in missing_packages:
+        missing_packages.remove(package_pypi)
         existing_packages.add(package)
     
     if args.recursive:
         for pkg in list(missing_packages):
-            if pkg not in existing_packages:
-                generate(pkg, args)
+            generate(pkg, args)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--repo', help='set repo directory', default='../gentoo-localrepo')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose logging')
     parser.add_argument('-R', '--recursive', action='store_true', help='generate ebuild recursively')
-    parser.add_argument('-p', '--repoman', action='store_true', help='run "repoman manifest" after generation')
+    parser.add_argument('-m', '--manifest', action='store_true', help='run "pkgdev manifest" after generation')
+    parser.add_argument('-a', '--all-repo', action='store_true', help='search all repos for existing packages including overlays')
     parser.add_argument('packages', nargs='+')
     args = parser.parse_args()
 
-    find_packages()
+    find_packages(args.repo, args.all_repo)
 
     # setup repo structure
     metadata = Path(args.repo) / "metadata"
