@@ -12,7 +12,7 @@ import portage
 
 portagedb = portage.db[portage.root]["porttree"].dbapi
 
-supported_python_versions = ['3.9', '3.10', '3.11']
+supported_python_versions = ['3.11', '3.12']
 
 # already provided by other gentoo packages
 exceptions = {
@@ -103,14 +103,14 @@ def convert_dependency(depend):
     # ignore strings after '[', e.g. horovod[torch]
     depend = depend.split('[')[0]
     # handle: package (>=version)
-    match = re.match("(.+) \(?>=([^)]+)\)?", depend)
+    match = re.match(r"(.+) \(?>=([^)]+)\)?", depend)
     if match:
         name = match.group(1)
         version = match.group(2)
         return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
     else:
         # handle: package (==version)
-        match = re.match("(.+) \(?==([^)]+)\)?", depend)
+        match = re.match(r"(.+) \(?==([^)]+)\)?", depend)
         if match:
             name = match.group(1)
             version = match.group(2)
