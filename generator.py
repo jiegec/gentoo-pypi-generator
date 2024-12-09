@@ -19,7 +19,7 @@ exceptions = {
     'bs4': 'dev-python/beautifulsoup:4',
     'funcsigs': '',
     'opencv-python': 'media-libs/opencv[python]',
-    'scikit-learn': 'sci-libs/scikit-learn',
+    'scikit-learn': 'dev-python/scikit-learn',
     'scipy': 'dev-python/scipy',
     'tensorflow': 'sci-libs/tensorflow',
     'tensorflow-cpu': 'sci-libs/tensorflow',
