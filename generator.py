@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 import datetime
 import portage
+import tomllib
 
 portagedb = portage.db[portage.root]["porttree"].dbapi
 
@@ -178,6 +179,20 @@ def find_packages(pypi_repo, search_all):
 
     print('Found %d packages in gentoo repo' % len(existing_packages))
 
+def get_build_system(pyproject_path):
+    if not os.path.exists(pyproject_path):
+        print("No pyproject.toml file found. Assume setuptools")
+        return "setuptools.__legacy__.build_meta", None
+
+    with open(pyproject_path, 'rb') as f:
+        pyproject_data = tomllib.load(f)
+
+    build_system = pyproject_data.get('build-system', {})
+    build_backend = build_system.get('build-backend', 'Not specified')
+    requirements = build_system.get('requires', [])
+
+    return build_backend, requirements
+
 def generate(package_pypi, args):
     print('Generating {} to {}'.format(package_pypi, args.repo))
     resp = requests.get("https://pypi.org/pypi/{}/json".format(package_pypi))
@@ -208,7 +223,8 @@ def generate(package_pypi, args):
         content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=8\n\n'
-        content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
+        content += 'PYTHON_COMPAT=( {} )\n'.format(compat)
+        content += 'DISTUTILS_USE_PEP517=no\n'
         content += 'inherit distutils-r1 pypi\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
         content += 'HOMEPAGE="{}"\n\n'.format(body['info']['home_page'])
@@ -221,6 +237,37 @@ def generate(package_pypi, args):
         f.write(content)
 
     os.system('cd %s && pkgdev manifest' % (dir))
+    tmpsettings = portage.portdb.doebuild_settings
+    realpath = os.path.realpath(path)
+    portage.doebuild(f"{realpath}", "unpack", settings=tmpsettings, tree="porttree")
+
+    pyprojectpath = glob.glob(os.path.join(tmpsettings["WORKDIR"], "*", "pyproject.toml"))
+    if len(pyprojectpath) == 0 :
+        pyprojectpath = ""
+    elif len(pyprojectpath) == 1 :
+        pyprojectpath = pyprojectpath[0]
+    build_backend, requirements = get_build_system(pyprojectpath)
+
+    build_backend_table = {
+            'flit_core.buildapi': 'flit',
+            'flit_scm:buildapi': 'flit_scm',
+            'hatchling.build': 'hatchling',
+            'jupyter_packaging.build_api': 'jupyter',
+            'maturin': 'maturin',
+            'mesonpy': 'meson-python',
+            'pbr.build': 'pbr',
+            'pdm.pep517.api': 'pdm',
+            'pdm.backend': 'pdm-backend',
+            'poetry.core.masonry.api': 'poetry',
+            'scikit_build_core.build': 'scikit-build-core',
+            'setuptools.build_meta': 'setuptools',
+            'setuptools.__legacy__.build_meta': 'setuptools',
+            'sipbuild.api': 'sip',
+            }
+
+    portage.doebuild(f"{realpath}", "clean", settings=tmpsettings, tree="porttree")
+    os.system(f"sed -e '/DISTUTILS_USE_PEP517=/s/no/{build_backend_table[build_backend]}/' -i {path}")
+    portage.doebuild(f"{realpath}", "manifest", settings=tmpsettings, tree="porttree")
         
     if package_pypi in missing_packages:
         missing_packages.remove(package_pypi)
