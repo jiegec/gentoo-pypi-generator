@@ -12,7 +12,7 @@ import portage
 
 portagedb = portage.db[portage.root]["porttree"].dbapi
 
-supported_python_versions = ['3.11', '3.12']
+supported_python_versions = ['3.11', '3.12', '3.13']
 
 # already provided by other gentoo packages
 exceptions = {
@@ -203,7 +203,7 @@ def generate(package_pypi, args):
     path = dir / "{}-{}.ebuild".format(package, body['info']['version'])
     print('Writing to', path)
     dir.mkdir(parents=True, exist_ok=True)
-    compat=("python3_{10..12}")
+    compat=("python3_1{1..3}")
     with path.open('w') as f:
         content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
