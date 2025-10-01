@@ -208,6 +208,7 @@ def generate(package_pypi, args):
         content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=8\n\n'
+	content += 'DISTUTILS_USE_PEP517=setuptools\n'
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
         content += 'inherit distutils-r1 pypi\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
@@ -222,11 +223,11 @@ def generate(package_pypi, args):
 
     if args.manifest:
         os.system('cd %s && pkgdev manifest' % (dir))
-        
+
     if package_pypi in missing_packages:
         missing_packages.remove(package_pypi)
         existing_packages.add(package)
-    
+
     if args.recursive:
         for pkg in list(missing_packages):
             generate(pkg, args)
