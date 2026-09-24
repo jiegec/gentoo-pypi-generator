@@ -113,27 +113,25 @@ def convert_dependency(depend, optional=False):
     depend = depend.split(';')[0].strip()
     # ignore strings after '[', e.g. horovod[torch]
     depend = depend.split('[')[0]
-    # handle: package (>=version)
-    match = re.match(r"(.+) \(?>=([^)]+)\)?", depend)
+    # handle: package (>=version) or package>=version or package<x,>=y
+    match = re.match(r"([^ ><=~!]+)[^>=]*>=\s*([^,\s)]+)", depend)
     if match:
         name = match.group(1)
         version = match.group(2)
         return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional), version)
+    # handle: package (==version) or package==version
+    match = re.match(r"([^ ><=~!]+)[^==]*==\s*([^,\s)]+)", depend)
+    if match:
+        name = match.group(1)
+        version = match.group(2)
+        return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional), version)
+    # strip all exotic (.*), e.g. (~=1-32-0), (~=3-7-4), (<2,>=1-21-1)
+    match = re.match("([^ ><=~!]+).*", depend)
+    if match:
+        name = match.group(1)
+        return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional))
     else:
-        # handle: package (==version)
-        match = re.match(r"(.+) \(?==([^)]+)\)?", depend)
-        if match:
-            name = match.group(1)
-            version = match.group(2)
-            return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional), version)
-        else:
-            # strip all exotic (.*), e.g. (~=1-32-0), (~=3-7-4), (<2,>=1-21-1)
-            match = re.match("([^ ><=~!]+).*", depend)
-            if match:
-                name = match.group(1)
-                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional))
-            else:
-                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend, optional))
+        return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend, optional))
 
 def get_iuse_and_depend(project, args):
     requires = project['info']['requires_dist']
