@@ -62,6 +62,9 @@ license_mapping = {
         'BSD 3-clause': 'BSD',
         'BSD 3-clause License': 'BSD',
         'BSD 3-Clause License': 'BSD',
+        'Apache License, Version 2.0': 'Apache-2.0',
+        'Apache License 2.0': 'Apache-2.0',
+        'MIT License': 'MIT',
 }
 
 # useless dependencies
@@ -208,12 +211,12 @@ def generate(package_pypi, args):
         content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=8\n\n'
-	content += 'DISTUTILS_USE_PEP517=setuptools\n'
+        content += 'DISTUTILS_USE_PEP517=setuptools\n'
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
         content += 'inherit distutils-r1 pypi\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
         content += 'HOMEPAGE="{}"\n\n'.format(body['info']['home_page'])
-        content += 'LICENSE="{}"\n'.format(body['info']['license'])
+        content += 'LICENSE="{}"\n'.format(license)
         content += 'SLOT="0"\n'
         content += 'KEYWORDS="~amd64"\n\n'
         content += iuse_and_depend
