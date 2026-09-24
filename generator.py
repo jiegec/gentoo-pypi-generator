@@ -74,7 +74,7 @@ existing_packages = set()
 missing_packages = set()
 missing_optional = set()
 
-def get_package_name(package_pypi, optional=False):
+def get_package_name(package_pypi, optional=False, min_version=None):
     package = package_pypi
     package = package.replace('.', '-')
     if package in exceptions:
@@ -82,7 +82,20 @@ def get_package_name(package_pypi, optional=False):
     elif package in renames:
         package = renames[package]
 
-    if package not in existing_packages:
+    need_generate = package not in existing_packages
+    if not need_generate and min_version:
+        # check if any existing version satisfies the constraint
+        satisfied = False
+        for cpv in portagedb.cp_list('dev-python/{}'.format(package)):
+            v = portage.versions.cpv_getversion(cpv)
+            if portage.versions.vercmp(v, min_version) >= 0:
+                satisfied = True
+                break
+        if not satisfied:
+            print("Package '%s' exists but no version satisfies >=%s" % (package, min_version))
+            need_generate = True
+
+    if need_generate:
         if optional:
             if package_pypi not in missing_packages:
                 print("Optional package '%s' does not exist" % package)
@@ -118,7 +131,7 @@ def convert_dependency(depend, optional=False):
     if match:
         name = match.group(1)
         version = match.group(2)
-        return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional), version)
+        return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional, version), version)
     # handle: package (==version) or package==version
     match = re.match(r"([^ ><=~!]+)[^==]*==\s*([^,\s)]+)", depend)
     if match:
