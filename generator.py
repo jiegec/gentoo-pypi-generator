@@ -138,7 +138,7 @@ def get_iuse_and_depend(project):
             if rm in req:
                 break
         else:
-            match = re.match("(.+); (.* and )?extra == '(.+)'", req)
+            match = re.match("(.+); (.* and )?extra == ['\"](.+)['\"]", req)
             if match:
                 name = match.group(1).strip()
                 use = match.group(3)
