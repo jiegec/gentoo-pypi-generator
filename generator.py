@@ -127,8 +127,12 @@ def convert_dependency(depend):
             else:
                 return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend))
 
-def get_iuse_and_depend(project):
+def get_iuse_and_depend(project, args):
     requires = project['info']['requires_dist']
+    if args.verbose:
+        print('requires_dist:')
+        for r in requires or []:
+            print('  {!r}'.format(r))
     simple = []
     uses = defaultdict(list)
     if requires == None:
@@ -199,7 +203,7 @@ def generate(package_pypi, args):
         license = license_mapping[license]
     print('License', license)
     print('Version', body['info']['version'])
-    iuse_and_depend = get_iuse_and_depend(body)
+    iuse_and_depend = get_iuse_and_depend(body, args)
     print('IUSE and Depend', iuse_and_depend)
 
     dir = Path(args.repo) / "dev-python" / package
