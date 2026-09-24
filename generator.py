@@ -208,7 +208,10 @@ def generate(package_pypi, args):
     versions = get_project_python_versions(body)
     compat = ' '.join(['python' + version.replace('.','_') for version in versions])
     print('Python versions', versions)
-    print('Homepage', body['info']['home_page'])
+    homepage = body['info']['home_page']
+    if not homepage and body['info'].get('project_urls'):
+        homepage = body['info']['project_urls'].get('Homepage')
+    print('Homepage', homepage)
     print('Description', body['info']['summary'])
     license = body['info']['license']
     if license in license_mapping:
@@ -222,7 +225,6 @@ def generate(package_pypi, args):
     path = dir / "{}-{}.ebuild".format(package, body['info']['version'])
     print('Writing to', path)
     dir.mkdir(parents=True, exist_ok=True)
-    compat=("python3_1{1..3}")
     with path.open('w') as f:
         content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
@@ -231,7 +233,7 @@ def generate(package_pypi, args):
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
         content += 'inherit distutils-r1 pypi\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
-        content += 'HOMEPAGE="{}"\n\n'.format(body['info']['home_page'])
+        content += 'HOMEPAGE="{}"\n'.format(homepage)
         content += 'LICENSE="{}"\n'.format(license)
         content += 'SLOT="0"\n'
         content += 'KEYWORDS="~amd64"\n\n'
