@@ -72,8 +72,9 @@ use_blackhole = set(('dev', 'doc', 'docs', 'all', 'test', 'testing', 'cuda'))
 
 existing_packages = set()
 missing_packages = set()
+missing_optional = set()
 
-def get_package_name(package_pypi):
+def get_package_name(package_pypi, optional=False):
     package = package_pypi
     package = package.replace('.', '-')
     if package in exceptions:
@@ -81,9 +82,16 @@ def get_package_name(package_pypi):
     elif package in renames:
         package = renames[package]
 
-    if not package in existing_packages:
-        print("Package '%s' does not exist" % package)
-        missing_packages.add(package_pypi)
+    if package not in existing_packages:
+        if optional:
+            if package_pypi not in missing_packages:
+                print("Optional package '%s' does not exist" % package)
+                missing_optional.add(package_pypi)
+        else:
+            print("Package '%s' does not exist" % package)
+            # a hard dependency trumps an optional sighting
+            missing_optional.discard(package_pypi)
+            missing_packages.add(package_pypi)
     return 'dev-python/' + package
 
 def get_project_python_versions(project):
@@ -100,7 +108,7 @@ def get_project_python_versions(project):
         res = supported_python_versions
     return res
 
-def convert_dependency(depend):
+def convert_dependency(depend, optional=False):
     # ignore strings after ';'
     depend = depend.split(';')[0].strip()
     # ignore strings after '[', e.g. horovod[torch]
@@ -110,22 +118,22 @@ def convert_dependency(depend):
     if match:
         name = match.group(1)
         version = match.group(2)
-        return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
+        return '>={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional), version)
     else:
         # handle: package (==version)
         match = re.match(r"(.+) \(?==([^)]+)\)?", depend)
         if match:
             name = match.group(1)
             version = match.group(2)
-            return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name), version)
+            return '={}-{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional), version)
         else:
             # strip all exotic (.*), e.g. (~=1-32-0), (~=3-7-4), (<2,>=1-21-1)
             match = re.match("([^ ><=~!]+).*", depend)
             if match:
                 name = match.group(1)
-                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name))
+                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(name, optional))
             else:
-                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend))
+                return '{}[${{PYTHON_USEDEP}}]'.format(get_package_name(depend, optional))
 
 def get_iuse_and_depend(project, args):
     requires = project['info']['requires_dist']
@@ -150,7 +158,11 @@ def get_iuse_and_depend(project, args):
                     continue
                 if name.startswith('types-'):
                     continue
-                uses[use].append(convert_dependency(name))
+                # when not recursing into optional deps, skip them entirely
+                # so IUSE/RDEPEND never reference packages outside the tree
+                if not args.optional:
+                    continue
+                uses[use].append(convert_dependency(name, optional=True))
             else:
                 match = re.match('(.+); python_version < "(.+)"', req)
                 if match:
@@ -231,19 +243,25 @@ def generate(package_pypi, args):
     if args.manifest:
         os.system('cd %s && pkgdev manifest' % (dir))
 
-    if package_pypi in missing_packages:
-        missing_packages.remove(package_pypi)
-        existing_packages.add(package)
+    # always record what we generated, so back-references from
+    # other packages (e.g. plugin extras) do not trigger regeneration
+    existing_packages.add(package)
+    missing_packages.discard(package_pypi)
+    missing_optional.discard(package_pypi)
 
     if args.recursive:
         for pkg in list(missing_packages):
             generate(pkg, args)
+        if args.optional:
+            for pkg in list(missing_optional):
+                generate(pkg, args)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--repo', help='set repo directory', default='../gentoo-localrepo')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose logging')
     parser.add_argument('-R', '--recursive', action='store_true', help='generate ebuild recursively')
+    parser.add_argument('-o', '--optional', action='store_true', help='with -R, also recurse into optional (extras) dependencies')
     parser.add_argument('-m', '--manifest', action='store_true', help='run "pkgdev manifest" after generation')
     parser.add_argument('-a', '--all-repo', action='store_true', help='search all repos for existing packages including overlays')
     parser.add_argument('packages', nargs='+')
@@ -259,6 +277,10 @@ def main():
 
     for package in args.packages:
         generate(package, args)
+
+    if missing_optional and not args.optional:
+        print('Skipped optional dependencies: {}'.format(', '.join(sorted(missing_optional))))
+        print('Rerun with -o to generate them as well.')
 
 if __name__ == "__main__":
     main()
