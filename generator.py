@@ -12,7 +12,7 @@ import portage
 
 portagedb = portage.db[portage.root]["porttree"].dbapi
 
-supported_python_versions = ['3.11', '3.12', '3.13']
+supported_python_versions = ['3.13', '3.14']
 
 # already provided by other gentoo packages
 exceptions = {
