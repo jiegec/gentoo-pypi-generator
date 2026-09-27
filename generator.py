@@ -65,6 +65,7 @@ license_mapping = {
         'Apache License, Version 2.0': 'Apache-2.0',
         'Apache License 2.0': 'Apache-2.0',
         'MIT License': 'MIT',
+	'MIT style': 'MIT'
 }
 
 # useless dependencies
