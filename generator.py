@@ -5,6 +5,10 @@ import os
 import requests
 import re
 import glob
+import io
+import tarfile
+import tomllib
+import zipfile
 from collections import defaultdict
 from pathlib import Path
 import datetime
@@ -193,6 +197,48 @@ def get_iuse_and_depend(project, args):
     iuse = 'IUSE="{}"'.format(" ".join(uses.keys()))
     return iuse + '\n' + 'RDEPEND="' + '\n\t'.join(simple + use_res) + '"'
 
+# Values accepted by Gentoo's distutils-r1.eclass.
+backend_mapping = {
+    'setuptools.build_meta': 'setuptools',
+    'setuptools.build_meta:__legacy__': 'setuptools',
+    'poetry.core.masonry.api': 'poetry-core',
+    'flit_core.buildapi': 'flit-core',
+    'hatchling.build': 'hatchling',
+    'pdm.backend': 'pdm-backend',
+    'mesonpy': 'meson-python',
+    'maturin': 'maturin',
+    'flit_scm:buildapi': 'flit-scm',
+    'jupyter_packaging.build_api': 'jupyter-packaging',
+    'pbr.build': 'pbr',
+    'scikit_build_core.build': 'scikit-build-core',
+    'sipbuild.api': 'sip',
+    'uv_build': 'uv-build',
+}
+
+def get_build_backend(project):
+    sdist = next(url for url in project['urls'] if url['packagetype'] == 'sdist')
+    distfile = Path(portage.settings['DISTDIR']) / sdist['filename']
+    if not distfile.exists():
+        response = requests.get(sdist['url'])
+        response.raise_for_status()
+        distfile.write_bytes(response.content)
+    archive = io.BytesIO(distfile.read_bytes())
+
+    if zipfile.is_zipfile(archive):
+        with zipfile.ZipFile(archive) as source:
+            name = next((name for name in source.namelist()
+                         if name.count('/') == 1 and name.endswith('/pyproject.toml')), None)
+            pyproject = tomllib.loads(source.read(name).decode()) if name else {}
+    else:
+        archive.seek(0)
+        with tarfile.open(fileobj=archive, mode='r:*') as source:
+            member = next((member for member in source.getmembers()
+                           if member.isfile() and member.name.count('/') == 1
+                           and member.name.endswith('/pyproject.toml')), None)
+            pyproject = tomllib.load(source.extractfile(member)) if member else {}
+    backend = pyproject.get('build-system', {}).get('build-backend', 'setuptools.build_meta')
+    return backend_mapping[backend]
+
 def find_packages(pypi_repo, search_all):
     repodirs = [portagedb.repositories.mainRepoLocation()]
     repodirs += [pypi_repo]
@@ -212,7 +258,9 @@ def find_packages(pypi_repo, search_all):
 def generate(package_pypi, args):
     print('Generating {} to {}'.format(package_pypi, args.repo))
     resp = requests.get("https://pypi.org/pypi/{}/json".format(package_pypi))
+    resp.raise_for_status()
     body = json.loads(resp.content)
+    backend = get_build_backend(body)
 
     package = body['info']['name'].replace('.','-')
     if package in renames:
@@ -241,7 +289,7 @@ def generate(package_pypi, args):
         content = f'# Copyright 1999-{datetime.date.today().year} Gentoo Authors\n'
         content += '# Distributed under the terms of the GNU General Public License v2\n\n'
         content += 'EAPI=8\n\n'
-        content += 'DISTUTILS_USE_PEP517=setuptools\n'
+        content += 'DISTUTILS_USE_PEP517={}\n'.format(backend)
         content += 'PYTHON_COMPAT=( {} )\n\n'.format(compat)
         content += 'inherit distutils-r1 pypi\n\n'
         content += 'DESCRIPTION="{}"\n'.format(body['info']['summary'])
